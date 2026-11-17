@@ -1,3 +1,3 @@
 "use client";
-import { useRouter } from "next/navigation";
-export function LogoutButton(){const router=useRouter();return <button className="button secondary" onClick={async()=>{await fetch("/api/auth/logout",{method:"POST"});router.replace("/");router.refresh();}}>Sign out</button>}
+import { signOut } from "next-auth/react";
+export function LogoutButton(){return <button className="button secondary" onClick={()=>void signOut({callbackUrl:"/"})}>Sign out</button>}

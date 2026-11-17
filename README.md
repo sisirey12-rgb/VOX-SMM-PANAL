@@ -7,9 +7,9 @@ This is an integrated application foundation, not a production-ready service. Th
 ## Included
 
 - Public marketing page, registration/login/logout, and responsive customer/admin workspaces.
-- Prisma PostgreSQL schema and initial SQL migration for users, roles, services, campaign orders, wallet ledger, tickets, API keys, audit log, and jobs.
+- Prisma PostgreSQL schema and migrations for users, OAuth accounts, sessions, services, campaign orders, wallet ledger, tickets, API keys, audit log, and jobs.
 - Authenticated REST routes for catalog, profile, orders, tickets, wallet/ledger, API-key creation/revocation, and administrator management of users, orders, services, tickets, and audit events.
-- Zod request validation, bcrypt password verification, signed HTTP-only session cookie, role check helper, origin check, basic security headers, and in-memory login rate limiting.
+- Zod request validation, bcrypt email/password login, Google OAuth, encrypted NextAuth session cookies, database-persisted users and provider accounts, role checks, origin checks, basic security headers, and in-memory login rate limiting.
 - Disabled-by-default payment and campaign-provider interfaces. Deposits return `503`; campaign orders are placed in review and never forwarded. No success is fabricated.
 - Seed catalog with strategy, paid social, content planning, and analytics services.
 
@@ -17,14 +17,23 @@ This is an integrated application foundation, not a production-ready service. Th
 
 Requirements: Node.js 20+, npm, and PostgreSQL 14+.
 
-1. Copy `.env.example` to `.env` and set `DATABASE_URL`, `APP_URL`, and a random `SESSION_SECRET` of at least 32 characters.
+1. Copy `.env.example` to `.env` and set `DATABASE_URL`, `NEXTAUTH_URL`, and a random `NEXTAUTH_SECRET` of at least 32 random bytes. Prisma CLI reads `.env` for migration commands.
 2. Install dependencies: `npm install`.
 3. Generate the Prisma client: `npm run db:generate`.
 4. Apply the migration: `npm run db:migrate`.
 5. Seed the catalog: `npm run db:seed`.
 6. Start the app: `npm run dev` and open `http://localhost:3000`.
 
-Registration, login, and logout flows are included. Email verification, password reset, and account recovery are not. There is no public admin bootstrap endpoint. Provision the first administrator privately, using a reviewed one-time script or controlled database process, and store only a bcrypt password hash. Add and review account lifecycle and CSRF protections before serving real customers.
+Email/password registration and login use bcrypt-hashed passwords stored in PostgreSQL. Google sign-in uses OAuth and persists linked accounts through the Prisma adapter. Sessions use encrypted JWT cookies; user records, Google account links, and roles are stored in PostgreSQL. Email verification, password reset, and account recovery are not included. There is no public admin bootstrap endpoint. Provision the first administrator privately, using a reviewed one-time script or controlled database process, and store only a bcrypt password hash.
+
+### Google OAuth setup
+
+Create an OAuth web client in Google Cloud Console and add these authorized redirect URIs:
+
+- Local: `http://localhost:3000/api/auth/callback/google`
+- Production: `https://vox-smm.vercel.app/api/auth/callback/google` (or the canonical domain configured for the deployment)
+
+Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED=true` locally and in the Vercel project environment settings. Set `NEXTAUTH_URL` to the exact app origin and `NEXTAUTH_SECRET` to a long random secret. Keep Google credentials server-side; only the enabled flag is public. Redeploy after changing production environment values.
 
 ## Integration configuration
 
@@ -44,7 +53,7 @@ Use a managed PostgreSQL database and a Node-compatible Next.js host. Configure 
 
 ## API overview
 
-All user routes require the `vox_session` cookie except health, registration, login, and logout. `GET /api/services` returns the active catalog. `POST /api/orders` records a review-only request; orders are not forwarded to providers and no money is charged. `GET /api/orders` lists the caller's orders (admins see all). `GET/POST /api/tickets` manages tickets. `GET /api/wallet` reads ledger entries; `POST /api/wallet` intentionally returns unavailable. `GET/POST /api/keys` lists/creates keys (the secret is returned once); `DELETE /api/keys/:id` revokes a key. Admin routes support user access changes, order status updates, service creation/activation, ticket responses/statuses, and recent audit events.
+NextAuth manages authentication cookies. `POST /api/auth/register` creates an email/password user; `/api/auth/[...nextauth]` handles OAuth, credentials, and sign-out; `GET /api/auth/me` returns the current user. Protected API routes require a valid NextAuth session. `GET /api/services` returns the active catalog. `POST /api/orders` records a review-only request; orders are not forwarded to providers and no money is charged. `GET /api/orders` lists the caller's orders (admins see all). `GET/POST /api/tickets` manages tickets. `GET /api/wallet` reads ledger entries; `POST /api/wallet` intentionally returns unavailable. `GET/POST /api/keys` lists/creates keys (the secret is returned once); `DELETE /api/keys/:id` revokes a key. Admin routes support user access changes, order status updates, service creation/activation, ticket responses/statuses, and recent audit events.
 
 ## License
 
