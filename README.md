@@ -40,7 +40,7 @@ The sample includes useful foundations, not a security certification. Before lau
 
 ## Deployment
 
-Use a managed PostgreSQL database and a Node-compatible Next.js host. Configure secrets in the host environment, run `npm run db:migrate` as a deployment/release step, then `npm run build` and `npm start`. Set `APP_URL` to the canonical HTTPS origin. Provider and payment integrations remain disabled until completed and verified. The included static pages are not an authentication experience; API routes enforce server-side authentication where present.
+Use a managed PostgreSQL database and a Node-compatible Next.js host. Configure secrets in the host environment, run `npm run db:migrate` as a deployment/release step, then `npm run build` and `npm start`. The included `vercel.json` selects `npm run build`, which regenerates Prisma Client from the checked-in schema before Next.js type-checking. This prevents a cached generated client from a previous schema version causing mismatched database types. Set `APP_URL` to the canonical HTTPS origin. Provider and payment integrations remain disabled until completed and verified. The included static pages are not an authentication experience; API routes enforce server-side authentication where present.
 
 ## API overview
 
