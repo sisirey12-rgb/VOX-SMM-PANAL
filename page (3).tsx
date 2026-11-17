@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Dashboard(){return <main className="shell" style={{paddingTop:60}}><Link className="brand" href="/">launchpad<span>.</span></Link><h1 style={{fontFamily:"Space Grotesk",marginTop:45}}>Workspace preview</h1><p className="sub">Protected customer dashboard will be added after authentication is implemented.</p><div className="card" style={{marginTop:25}}>This route is currently a development placeholder and is not access-controlled yet.</div></main>}

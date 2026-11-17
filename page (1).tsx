@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function RegisterPage(){return <main className="shell" style={{paddingTop:90,maxWidth:520}}><Link className="brand" href="/">launchpad<span>.</span></Link><h1 style={{fontFamily:"Space Grotesk",marginTop:45}}>Create an account</h1><p className="sub">Registration UI and secure account creation will be implemented next.</p><div className="card" style={{marginTop:25}}><p className="sub">This is a placeholder, not a working registration form.</p><Link className="btn primary" href="/">Back to home</Link></div></main>}

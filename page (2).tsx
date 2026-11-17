@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Admin(){return <main className="shell" style={{paddingTop:60}}><Link className="brand" href="/">launchpad<span>.</span></Link><h1 style={{fontFamily:"Space Grotesk",marginTop:45}}>Admin workspace preview</h1><p className="sub">Admin functionality and server-side role checks are not implemented yet.</p><div className="card" style={{marginTop:25}}>Do not deploy this route as an operational admin panel until access control is implemented and tested.</div></main>}
