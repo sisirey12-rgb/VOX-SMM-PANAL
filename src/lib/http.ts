@@ -1,0 +1,3 @@
+import { NextResponse } from "next/server";
+export const jsonError = (message: string, status = 400) => NextResponse.json({ error: message }, { status });
+export function rateLimit(request: Request, max = 30, windowMs = 60_000) { const store = globalThis as typeof globalThis & { __voxLimits?: Map<string, { count: number; reset: number }> }; store.__voxLimits ??= new Map(); const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local"; const now = Date.now(); const entry = store.__voxLimits.get(ip); if (!entry || entry.reset < now) { store.__voxLimits.set(ip, { count: 1, reset: now + windowMs }); return false; } entry.count++; return entry.count > max; }

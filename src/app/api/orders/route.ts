@@ -1,0 +1,7 @@
+import { z } from "zod";
+import { db } from "@/lib/db";
+import { currentUser } from "@/lib/auth";
+import { jsonError } from "@/lib/http";
+const schema = z.object({ serviceId: z.string().min(1), targetUrl: z.string().url().max(2048), brief: z.string().min(20).max(3000), budgetCents: z.number().int().min(1000).max(10000000) });
+export async function GET() { const user = await currentUser(); if (!user) return jsonError("Authentication required.", 401); const orders = await db.order.findMany({ where: user.role === "ADMIN" ? {} : { userId: user.id }, include: { service: true }, orderBy: { createdAt: "desc" }, take: 100 }); return Response.json({ orders }); }
+export async function POST(request: Request) { const user = await currentUser(); if (!user) return jsonError("Authentication required.", 401); const parsed = schema.safeParse(await request.json().catch(() => null)); if (!parsed.success) return jsonError("Please provide a valid service, URL, brief, and budget."); const service = await db.service.findFirst({ where: { id: parsed.data.serviceId, active: true } }); if (!service) return jsonError("Service is unavailable.", 404); const order = await db.order.create({ data: { ...parsed.data, userId: user.id, status: "REVIEW" } }); await db.auditLog.create({ data: { actorId: user.id, action: "order.created", entityType: "Order", entityId: order.id } }); return Response.json({ order, message: "Submitted for review. No provider or payment has been contacted." }, { status: 201 }); }

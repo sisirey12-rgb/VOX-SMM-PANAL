@@ -1,0 +1,3 @@
+import { db } from "@/lib/db"; import { currentUser } from "@/lib/auth"; import { jsonError } from "@/lib/http";
+export async function GET() { const user = await currentUser(); if (!user) return jsonError("Authentication required.", 401); const entries = await db.ledgerEntry.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 100 }); return Response.json({ entries, balanceCents: entries.reduce((sum, entry) => sum + entry.amountCents, 0), currency: "USD" }); }
+export async function POST() { return jsonError("Deposits are unavailable until a payment gateway and signed webhook are configured.", 503); }

@@ -1,0 +1,2 @@
+import { requireRole } from "@/lib/auth"; import { jsonError } from "@/lib/http"; import { db } from "@/lib/db";
+export async function GET() { const admin = await requireRole("ADMIN"); if (!admin) return jsonError("Administrator access required.", 403); return Response.json({ users: await db.user.findMany({ select: { id: true, email: true, name: true, role: true, disabledAt: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 200 }) }); }
