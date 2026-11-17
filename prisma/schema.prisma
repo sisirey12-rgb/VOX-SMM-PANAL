@@ -1,108 +1,155 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
-enum Role { CUSTOMER ADMIN }
-enum OrderStatus { DRAFT PENDING REVIEW APPROVED RUNNING PAUSED COMPLETED CANCELED FAILED }
-enum TicketStatus { OPEN WAITING RESOLVED CLOSED }
-enum LedgerType { DEPOSIT ORDER_CHARGE REFUND ADJUSTMENT }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING
+  REVIEW
+  APPROVED
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELED
+  FAILED
+}
+
+enum TicketStatus {
+  OPEN
+  WAITING
+  RESOLVED
+  CLOSED
+}
+
+enum LedgerType {
+  DEPOSIT
+  ORDER_CHARGE
+  REFUND
+  ADJUSTMENT
+}
+
 model User {
-  id String @id @default(cuid())
-  email String @unique
-  name String
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
   passwordHash String
-  role Role @default(CUSTOMER)
-  disabledAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orders Order[]
-  tickets Ticket[]
-  ledger LedgerEntry[]
-  apiKeys ApiKey[]
+  role         Role          @default(CUSTOMER)
+  disabledAt   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  orders       Order[]
+  tickets      Ticket[]
+  ledger       LedgerEntry[]
+  apiKeys      ApiKey[]
 }
+
 model Service {
-  id String @id @default(cuid())
-  name String
-  description String
-  category String
-  priceCents Int
-  active Boolean @default(true)
+  id           String   @id @default(cuid())
+  name         String
+  description  String
+  category     String
+  priceCents   Int
+  active       Boolean  @default(true)
   providerCode String?
-  createdAt DateTime @default(now())
-  orders Order[]
+  createdAt    DateTime @default(now())
+  orders       Order[]
 }
+
 model Order {
-  id String @id @default(cuid())
-  userId String
-  serviceId String
-  targetUrl String
-  brief String
+  id          String      @id @default(cuid())
+  userId      String
+  serviceId   String
+  targetUrl   String
+  brief       String
   budgetCents Int
-  status OrderStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user User @relation(fields:[userId], references:[id])
-  service Service @relation(fields:[serviceId], references:[id])
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  user        User        @relation(fields: [userId], references: [id])
+  service     Service     @relation(fields: [serviceId], references: [id])
+
   @@index([userId, createdAt])
 }
+
 model LedgerEntry {
-  id String @id @default(cuid())
-  userId String
-  type LedgerType
-  amountCents Int
-  currency String @default("USD")
-  reference String?
-  idempotencyKey String? @unique
-  createdAt DateTime @default(now())
-  user User @relation(fields:[userId], references:[id])
+  id             String    @id @default(cuid())
+  userId         String
+  type           LedgerType
+  amountCents    Int
+  currency       String    @default("USD")
+  reference      String?
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id])
+
   @@index([userId, createdAt])
 }
+
 model Ticket {
-  id String @id @default(cuid())
-  userId String
-  subject String
-  status TicketStatus @default(OPEN)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user User @relation(fields:[userId], references:[id])
-  messages TicketMessage[]
+  id        String       @id @default(cuid())
+  userId    String
+  subject   String
+  status    TicketStatus @default(OPEN)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User         @relation(fields: [userId], references: [id])
+  messages  TicketMessage[]
 }
+
 model TicketMessage {
-  id String @id @default(cuid())
-  ticketId String
-  authorId String
-  body String
+  id        String   @id @default(cuid())
+  ticketId  String
+  authorId  String
+  body      String
   createdAt DateTime @default(now())
-  ticket Ticket @relation(fields:[ticketId], references:[id], onDelete:Cascade)
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
   @@index([ticketId, createdAt])
 }
+
 model ApiKey {
-  id String @id @default(cuid())
-  userId String
-  name String
-  prefix String
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  prefix     String
   secretHash String
   lastUsedAt DateTime?
-  revokedAt DateTime?
-  createdAt DateTime @default(now())
-  user User @relation(fields:[userId], references:[id])
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id])
 }
+
 model AuditLog {
-  id String @id @default(cuid())
-  actorId String?
-  action String
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
   entityType String
-  entityId String?
-  metadata Json?
-  createdAt DateTime @default(now())
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
   @@index([actorId, createdAt])
 }
+
 model Job {
-  id String @id @default(cuid())
-  kind String
-  payload Json
-  attempts Int @default(0)
-  runAt DateTime @default(now())
-  lockedAt DateTime?
+  id          String    @id @default(cuid())
+  kind        String
+  payload     Json
+  attempts    Int       @default(0)
+  runAt       DateTime  @default(now())
+  lockedAt    DateTime?
   completedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt   DateTime  @default(now())
+
   @@index([completedAt, runAt])
 }
